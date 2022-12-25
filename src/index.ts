@@ -51,8 +51,6 @@ export default {
     }
     const username = body.message.from.username
 
-    await reply('Hi ' + username)
-
     if (body.message.chat.id === ADMIN_CHAT && body.message.text === 'reset') {
       console.log('Resetting')
       await STORE.delete('table')
@@ -61,7 +59,7 @@ export default {
       return new Response('Reset done')
     }
 
-    await reply('Hi ' + username)
+    await reply(`Hey ${username}!`)
 
     const isFull = (table: Table) =>
       Object.keys(table).length === parseInt(PEOPLE_PLAYING)
