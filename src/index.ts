@@ -8,8 +8,8 @@ export default {
     request: Request,
     env: {
       TOKEN: string
-      PEOPLE_PLAYING: number
-      ADMIN_CHAT: number
+      PEOPLE_PLAYING: string
+      ADMIN_CHAT: string
       STORE: KVNamespace
     },
     _ctx: ExecutionContext
@@ -26,7 +26,14 @@ export default {
       await sendMessage(chatId, message)
     }
     const notifyAdmin = async (message: string) => {
-      await sendMessage(ADMIN_CHAT, message)
+      await sendMessage(parseInt(ADMIN_CHAT), message)
+    }
+
+    if (
+      !request.headers.has('Content-Type'.toLowerCase()) ||
+      !request.headers.get('Content-Type')!.includes('application/json')
+    ) {
+      return new Response('Not JSON')
     }
 
     const body = await request.json()
@@ -35,11 +42,11 @@ export default {
       return new Response('Ignoring these types of updates')
     }
 
-    const chatId = body.message.chat.id || ADMIN_CHAT
+    const chatId = body.message.chat.id
     const reply = makeReply(chatId)
 
     if (!body.message.from.username) {
-      await reply('You need an username')
+      await reply('You need a username')
       return new Response('No username')
     }
     const username = body.message.from.username
@@ -54,8 +61,10 @@ export default {
       return new Response('Reset done')
     }
 
+    await reply('Hi ' + username)
+
     const isFull = (table: Table) =>
-      Object.keys(table).length + 1 === PEOPLE_PLAYING
+      Object.keys(table).length === parseInt(PEOPLE_PLAYING)
 
     const register = async (username: string, chatId: number) => {
       const table = await STORE.get('table')
@@ -77,11 +86,11 @@ export default {
       if (!parsedTable.hasOwnProperty(username)) {
         await reply('Adding you')
         await notifyAdmin(`${username} not in table, adding`)
-        const newObject = JSON.parse(table)
-        await STORE.put(
-          'table',
-          JSON.stringify({ ...newObject, [username]: { chatId } })
-        )
+        const newObject: Table = JSON.parse(table)
+
+        newObject[username] = { chatId }
+
+        await STORE.put('table', JSON.stringify(newObject))
         await notifyAdmin('Updated table')
 
         if (isFull(newObject)) {
@@ -119,12 +128,12 @@ export default {
       console.log('Merger initiated')
 
       const final = Object.fromEntries(
-        Object.entries(table).map(([k, v]) => [
+        Object.entries(table).map(([k, v], ix) => [
           k,
           {
             ...v,
-            gift: gifts[k],
-            costume: costumes[k],
+            gift: gifts[ix],
+            costume: costumes[ix],
           },
         ])
       )

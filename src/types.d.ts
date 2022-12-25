@@ -1,3 +1,3 @@
 export type Table = {
-  [key: string]: { chatId: number; gift: 'string'; costume: 'string' }
+  [key: string]: { chatId: number; gift?: 'string'; costume?: 'string' }
 }
