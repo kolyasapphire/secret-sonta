@@ -1,0 +1,6 @@
+name = "secretsonta"
+main = "./src/index.ts"
+compatibility_date = "2022-12-25"
+kv_namespaces = [
+  { binding = "STORE", id = "09aac4f35a6041bf94d23f4556d9a2e1", preview_id = "5c7a776cf24846c18af4b0a13115d638" }
+]
